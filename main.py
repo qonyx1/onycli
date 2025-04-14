@@ -37,22 +37,39 @@ def main(stdscr):
 
     while True:
         stdscr.clear()
+        height, width = stdscr.getmaxyx()
+
+        # Check for minimal terminal size
+        min_height = min(len(keys) + 6, 20)
+        min_width = 40
+        if height < min_height or width < min_width:
+            stdscr.addstr(0, 0, "Terminal too small. Resize and try again.", curses.A_BOLD)
+            stdscr.refresh()
+            time.sleep(2)
+            continue
+
         stdscr.addstr(0, 0, "Select programs to install (↑/↓ to move, Enter to toggle/select):\n")
 
         for i, name in enumerate(keys):
+            y = i + 2
+            if y >= height - 3:
+                break  # Prevent drawing off screen
             prefix = "[x] " if name in selected else "[ ] "
+            display_text = (prefix + name)[:width - 1]
             if i == index:
-                stdscr.addstr(i + 2, 0, prefix + name, curses.A_REVERSE)
+                stdscr.addstr(y, 0, display_text, curses.A_REVERSE)
             else:
-                stdscr.addstr(i + 2, 0, prefix + name)
+                stdscr.addstr(y, 0, display_text)
 
         # Draw install button
         y_pos = len(keys) + 3
-        button_text = f"[ Install {len(selected)} Selected Program{'s' if len(selected) != 1 else ''} ]"
-        if index == install_button_index:
-            stdscr.addstr(y_pos, 0, button_text, curses.A_REVERSE)
-        else:
-            stdscr.addstr(y_pos, 0, button_text)
+        if y_pos < height:
+            button_text = f"[ Install {len(selected)} Selected Program{'s' if len(selected) != 1 else ''} ]"
+            display_text = button_text[:width - 1]
+            if index == install_button_index:
+                stdscr.addstr(y_pos, 0, display_text, curses.A_REVERSE)
+            else:
+                stdscr.addstr(y_pos, 0, display_text)
 
         stdscr.refresh()
         key = stdscr.getch()
@@ -61,7 +78,7 @@ def main(stdscr):
             index = (index - 1) % (len(keys) + 1)
         elif key in [curses.KEY_DOWN, ord('j')]:
             index = (index + 1) % (len(keys) + 1)
-        elif key == 10:  # Enter
+        elif key == 10:  # Enter key
             if index == install_button_index:
                 if not selected:
                     continue
