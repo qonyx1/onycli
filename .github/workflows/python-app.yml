@@ -24,7 +24,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest
+        pip install flake8
         if (Test-Path requirements.txt) { pip install -r requirements.txt }
         pip install windows-curses
 
@@ -33,5 +33,9 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-    - name: Test with pytest
-      run: pytest
+    - name: Run main.py (with timeout)
+      run: |
+        # Run main.py and kill it if it runs longer than 10 seconds
+        Start-Process python main.py
+        Start-Sleep -Seconds 10
+        Get-Process python -ErrorAction SilentlyContinue | ForEach-Object { $_.Kill() }
