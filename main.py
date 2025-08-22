@@ -1,3 +1,5 @@
+# THIS RUNS ON WINDOWS ONLY!
+
 import curses
 import subprocess
 import json
